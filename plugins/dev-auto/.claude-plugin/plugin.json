@@ -1,0 +1,11 @@
+{
+  "name": "dev-auto",
+  "description": "tsumiki のスキルを組み合わせた、全自動の開発パイプライン。指示文・GitHub issue URL・メモファイルから、1つの入口（/dev-auto:dev-auto）でマージできる PR まで進める。アイデア出し（ideate: 方向性の異なる N 案を採点して比較）または要件の詳細化（refine: 5つの観点で足りない点だけを質問して PRD を作る）、外部仕様の合意（機能一覧・画面遷移・HTML モックアップ・データモデル）、dev-plan / dev-run、画面テストとデバッグの反復、複数パスのコードレビュー、PR 作成、公式 code-review と結果コメントまでを行う。--auto ですべての判断を無人で行い記録する。PC / スマホ幅のデザイン案を並べて決める design-explore も含む。",
+  "version": "0.11.0",
+  "author": {
+    "name": "sadano"
+  },
+  "homepage": "https://github.com/sadano-dev/dev-auto",
+  "repository": "https://github.com/sadano-dev/dev-auto",
+  "license": "MIT"
+}

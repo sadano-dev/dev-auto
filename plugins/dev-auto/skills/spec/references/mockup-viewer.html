@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+  dev-auto モックアップビューア（mockups/index.html のひな形）
+  使い方: このファイルを docs/dev-auto/<run-id>/spec/mockups/index.html にコピーし、
+  下の SCREENS 配列と TITLE だけを書き換える。対象デバイス（state.md の target_devices）が
+  pc+phone 以外なら DEVICES も書き換える。それ以外は変更しない。
+  各画面を DEVICES の幅の iframe で並べて表示する（既定は PC 幅とスマホ幅。file:// で開いても動く）。
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>モックアップ一覧</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --text: #1f2328; --muted: #57606a;
+    --border: #d0d7de; --accent: #0969da;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; background: var(--bg); color: var(--text); }
+  header { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  h1 { margin: 0; font-size: 16px; }
+  .modes { display: flex; gap: 4px; }
+  .modes button { padding: 6px 12px; border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 6px; font-size: 13px; cursor: pointer; }
+  .modes button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  main { padding: 16px; display: grid; gap: 24px; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  section h2 { margin: 0 0 4px; font-size: 15px; }
+  section p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  section p a { color: var(--accent); }
+  .frames { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  figure { margin: 0; }
+  figcaption { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .viewport { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: #fff; }
+  .viewport iframe { border: 0; transform-origin: 0 0; display: block; }
+  figure[hidden], .modes[hidden] { display: none; }
+</style>
+</head>
+<body data-mode="both">
+<header>
+  <h1 id="title"></h1>
+  <div class="modes" role="group" aria-label="表示切り替え"></div>
+</header>
+<main id="screens"></main>
+<script>
+  // ==== ここだけ書き換える ====
+  const TITLE = "モックアップ一覧";
+  const SCREENS = [
+    // { id: "S-01", name: "タスク一覧", file: "S-01-task-list.html", note: "関連: F-01, F-02" },
+  ];
+
+  // 対象デバイス。既定（pc+phone）はこのまま。最初の1つがいちばん広い画面になるように並べる
+  //   pc_only        → sp の行を消す
+  //   fixed:<W>x<H>  → 1種だけにする。例: fixed: { label: "固定画面（1280 × 720）", button: "固定画面", width: 1280, height: 720 },
+  const DEVICES = {
+    pc: { label: "PC（1280 × 800）", button: "PC", width: 1280, height: 800 },
+    sp: { label: "スマホ（375 × 740）", button: "スマホ", width: 375, height: 740 },
+  };
+  // ===========================
+
+  const KEYS = Object.keys(DEVICES);
+
+  document.title = TITLE;
+  document.getElementById("title").textContent = TITLE;
+
+  // 切り替えボタン。機種が1種だけならボタンは出さない
+  const modes = document.querySelector(".modes");
+  if (KEYS.length > 1) {
+    for (const [mode, label] of [["both", "並べて表示"], ...KEYS.map((k) => [k, DEVICES[k].button || k])]) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.mode = mode;
+      b.textContent = label;
+      b.setAttribute("aria-pressed", String(mode === "both"));
+      modes.appendChild(b);
+    }
+  } else {
+    modes.hidden = true;
+  }
+
+  const root = document.getElementById("screens");
+  for (const s of SCREENS) {
+    const section = document.createElement("section");
+    section.innerHTML = `<h2>${s.id} ${s.name}</h2>
+      <p>${s.note || ""} — <a href="${s.file}" target="_blank" rel="noopener">単独で開く</a></p>
+      <div class="frames"></div>`;
+    const frames = section.querySelector(".frames");
+    for (const [key, d] of Object.entries(DEVICES)) {
+      const fig = document.createElement("figure");
+      fig.className = key;
+      fig.innerHTML = `<figcaption>${d.label}</figcaption><div class="viewport"><iframe title="${s.id} ${d.label}" src="${s.file}" loading="lazy"></iframe></div>`;
+      frames.appendChild(fig);
+    }
+    root.appendChild(section);
+  }
+
+  // いちばん広い画面（最初の機種）は画面に収まるよう縮小表示する（ほかの機種は収まる限り等倍）
+  function layout() {
+    const mode = document.body.dataset.mode;
+    const frames = document.querySelector(".frames");
+    if (!frames) return;
+    // 枠線 2px ぶんを引いた、実際に使える幅
+    const avail = Math.max(280, frames.clientWidth - 4);
+    const GAP = 24;
+    for (const fig of document.querySelectorAll("figure")) {
+      fig.hidden = mode !== "both" && fig.className !== mode;
+      if (fig.hidden) continue;
+      const d = DEVICES[fig.className];
+      // 並べて表示のときは、最初の機種の横にほかの機種（等倍）を置く幅を残す
+      const others = mode === "both" && fig.className === KEYS[0]
+        ? KEYS.slice(1).reduce((sum, k) => sum + DEVICES[k].width + 2 + GAP, 0)
+        : 0;
+      const scale = Math.min(1, Math.max(0.2, (avail - others) / d.width));
+      const iframe = fig.querySelector("iframe");
+      iframe.style.width = d.width + "px";
+      iframe.style.height = d.height + "px";
+      iframe.style.transform = `scale(${scale})`;
+      const box = fig.querySelector(".viewport");
+      box.style.width = d.width * scale + "px";
+      box.style.height = d.height * scale + "px";
+    }
+  }
+
+  for (const btn of modes.querySelectorAll("button")) {
+    btn.addEventListener("click", () => {
+      document.body.dataset.mode = btn.dataset.mode;
+      for (const b of modes.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b === btn));
+      layout();
+    });
+  }
+  // スクロールバーの出現などでコンテナ幅が変わったときも計算し直す
+  new ResizeObserver(layout).observe(root);
+  layout();
+</script>
+</body>
+</html>

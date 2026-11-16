@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>00 現行 — PROJECT デザイン検討</title>
+<!-- DIRECTION-FONTS: 案ごとの Google Fonts の <link> はここに置く（検討用ボードでは外部フォントを使ってよい） -->
+<style>
+/* =====================================================================
+   BOARD（検討用の外枠）。案ごとに変えない。
+   ===================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.board {
+  background: #e9ebef; color: #1f2328;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 14px; line-height: 1.6;
+}
+.board-head {
+  padding: 24px 24px 8px; max-width: 1720px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 24px; align-items: start;
+}
+@media (max-width: 1000px) { .board-head { grid-template-columns: 1fr; } }
+.board-head .board-no { font: 600 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; color: #59636e; }
+.board-head h1 { font-size: 26px; margin: 6px 0 8px; line-height: 1.3; }
+.board-head .board-intent { margin: 0; color: #3b424a; max-width: 64ch; }
+.board-head .board-back { font-size: 13px; color: #4338ca; }
+.board-notes { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 16px; font-size: 13px; }
+.board-notes h2 { font-size: 13px; margin: 0 0 6px; }
+.board-notes table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.board-notes th, .board-notes td { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+.board-notes th { font-weight: 600; color: #59636e; white-space: nowrap; }
+.board-notes code { font-size: 12px; }
+.board-notes ul { margin: 0 0 8px; padding-left: 18px; }
+.board-section { max-width: 1720px; margin: 0 auto; padding: 16px 24px 32px; }
+.board-section > h2 { font-size: 15px; margin: 0 0 12px; color: #3b424a; }
+.board-row { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 12px; }
+.board-frame { flex: none; margin: 0; }
+.board-frame figcaption { font: 600 12px/1 ui-monospace, Menlo, monospace; color: #59636e; margin-bottom: 8px; }
+.board-frame .device {
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.08);
+}
+.board-frame.pc .device { width: 1280px; }
+.board-frame.sp .device { width: 375px; }
+
+/* 比較用の切り替え（手順 6 で値を比べるときだけ使う。決定したら消す） */
+.compare-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 4px; font-size: 13px; }
+.compare-switch button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; font: inherit; cursor: pointer;
+  border: 1px solid #c3c9d1; border-radius: 999px; background: #fff; color: #1f2328;
+}
+.compare-switch button::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--sw); }
+.compare-switch button[aria-pressed="true"] { border: 2px solid #1f2328; font-weight: 700; padding: 0 11px; }
+
+/* =====================================================================
+   APP（ここから下が「デザインの案」。案ごとに書き換える）
+   .app がビューポートの代わり。@media ではなく @container app で PC / スマホを切り替える
+   （同じページに 1280px と 375px の枠が並ぶため）。
+   ===================================================================== */
+.app {
+  container: app / inline-size;
+  /* ---- トークン: 実プロジェクトのトークンファイルの値をここにそのまま写す ---- */
+  --color-bg: #ffffff;
+  --color-surface: #f6f7f9;
+  --color-text: #1f2328;
+  --color-text-muted: #59636e;
+  --color-border: #d0d7de;
+  --color-primary: #4338ca;
+  --color-on-primary: #ffffff;
+  --font-family: system-ui, -apple-system, "Hiragino Sans", sans-serif;
+  --radius: 8px;
+  --space-2: 8px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
+  --tap-min: 44px;
+  --content-max: 1120px;
+  --gutter: 16px;
+
+  background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-family); min-height: 100%;
+}
+.app a { color: var(--color-primary); }
+
+/* ---- 以下、実コンポーネントの構造に合わせたスタイル（例） ---- */
+.site-header { border-bottom: 1px solid var(--color-border); }
+.header-inner {
+  max-width: var(--content-max); margin: 0 auto; padding: 0 var(--gutter); min-height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+}
+.site-header__logo { font-weight: 700; font-size: 20px; color: var(--color-text) !important; text-decoration: none; }
+.page-body { max-width: var(--content-max); margin: 0 auto; padding: var(--space-8) var(--gutter); }
+.card-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); list-style: none; margin: 0; padding: 0; }
+@container app (min-width: 768px) {
+  .header-inner, .page-body { padding-left: var(--space-6); padding-right: var(--space-6); }
+  .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.card { border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-4); min-width: 0; }
+</style>
+</head>
+<body class="board">
+
+<header class="board-head">
+  <div>
+    <p class="board-no">DIRECTION 00</p>
+    <h1>現行（ベースライン）</h1>
+    <p class="board-intent">この案の狙い: 誰に何を感じてほしいか、何を優先し何をトレードオフにしたか（3〜4 文）。</p>
+    <!-- 値を比べるときだけ: <div class="compare-switch" role="group" aria-label="〇〇を切り替える">…</div> -->
+    <p><a class="board-back" href="index.html">← 一覧に戻る</a></p>
+  </div>
+  <aside class="board-notes">
+    <h2>変更点（トークンファイルとの差分）</h2>
+    <table>
+      <tr><th>色</th><td>変更したトークンを <code>--name: 旧 → 新</code> の形で</td></tr>
+      <tr><th>書体</th><td></td></tr>
+      <tr><th>形</th><td>角丸・影・線</td></tr>
+      <tr><th>レイアウト</th><td>マークアップの変更があれば</td></tr>
+    </table>
+    <p>採用時の影響範囲: トークン変更が波及する範囲、コンポーネント・データ・API の変更が要るもの。</p>
+    <h2>アクセシビリティ</h2>
+    <ul><li>文字色と背景のコントラスト（実測値）、タップ領域、色だけに頼らない状態表示</li></ul>
+    <h2>難しい場合の見せ方</h2>
+    <ul><li>フィクスチャの難しい場合（複数のまとまり・エラー・空・未設定）をこの案でどう見せたか</li></ul>
+  </aside>
+</header>
+
+<section class="board-section">
+  <h2>画面 A（例: トップ）</h2>
+  <div class="board-row">
+    <!-- PC 枠だけを書く。スマホ枠は末尾のスクリプトが複製する -->
+    <figure class="board-frame pc"><figcaption>PC 1280px</figcaption><div class="device">
+<div class="app">
+  <header class="site-header"><div class="header-inner">
+    <a class="site-header__logo" href="#">PROJECT</a>
+    <nav><a href="#">メニュー</a></nav>
+  </div></header>
+  <main class="page-body">
+    <ul class="card-grid">
+      <li class="card">実データ風のダミー（長いタイトル・空・エラーの例も入れる）</li>
+      <li class="card">…</li>
+      <li class="card">…</li>
+    </ul>
+  </main>
+</div>
+    </div></figure>
+  </div>
+</section>
+
+<script>
+/* PC 枠の .app をスマホ枠へ複製する（マークアップを 1 か所で保つため） */
+document.querySelectorAll(".board-row").forEach(function (row) {
+  var pc = row.querySelector(".board-frame.pc");
+  if (!pc) return;
+  var sp = pc.cloneNode(true);
+  sp.className = "board-frame sp";
+  sp.querySelector("figcaption").textContent = "スマホ 375px";
+  /* 複製したフォーム部品は id / for / name を別にする（ラベルが PC 側を指さないように） */
+  sp.querySelectorAll("[id]").forEach(function (el) { el.id += "-sp"; });
+  sp.querySelectorAll("label[for]").forEach(function (el) { el.htmlFor += "-sp"; });
+  sp.querySelectorAll("input[name]").forEach(function (el) { el.name += "-sp"; });
+  row.appendChild(sp);
+});
+
+/* 比較用の切り替え（使うときだけ）。<button data-value="x" aria-pressed="false" style="--sw:#hex">名前</button> を並べ、
+   CSS で body[data-compare="x"] .app { --token: … } を書く。#x で初期値を指定できる */
+(function () {
+  var btns = document.querySelectorAll(".compare-switch button");
+  if (!btns.length) return;
+  function set(v) {
+    document.body.setAttribute("data-compare", v);
+    btns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.value === v)); });
+  }
+  btns.forEach(function (b) {
+    b.addEventListener("click", function () { set(b.dataset.value); history.replaceState(null, "", "#" + b.dataset.value); });
+  });
+  var h = location.hash.slice(1);
+  set(Array.prototype.some.call(btns, function (b) { return b.dataset.value === h; }) ? h : btns[0].dataset.value);
+})();
+</script>
+</body>
+</html>

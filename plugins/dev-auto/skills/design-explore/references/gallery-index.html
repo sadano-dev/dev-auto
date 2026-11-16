@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROJECT デザイン検討</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: #e9ebef; color: #1f2328;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 14px; line-height: 1.6;
+}
+.wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 64px; }
+h1 { font-size: 26px; margin: 0 0 8px; }
+.intro { max-width: 72ch; color: #3b424a; margin: 0 0 8px; }
+.decided { max-width: 72ch; background: #fff; border-left: 4px solid #1f2328; padding: 8px 12px; margin: 0 0 12px; }
+.how { font-size: 13px; color: #59636e; margin: 0 0 28px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: 20px; list-style: none; margin: 0; padding: 0; }
+.card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.08); display: flex; flex-direction: column; height: 100%; }
+.card a.cover { display: block; text-decoration: none; color: inherit; }
+.card a.cover:focus-visible { outline: 3px solid #4338ca; outline-offset: -3px; }
+.shots { display: grid; grid-template-columns: 1fr 96px; gap: 6px; padding: 10px; background: #f3f4f6; }
+.shots img { display: block; width: 100%; height: 190px; object-fit: cover; object-position: top left; border-radius: 4px; background: #dde1e6; }
+.body { padding: 12px 16px 16px; }
+.no { font: 600 12px/1 ui-monospace, Menlo, monospace; color: #59636e; }
+.card h2 { font-size: 17px; margin: 4px 0 6px; }
+.card p { margin: 0 0 8px; color: #3b424a; }
+.axes { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.axes li { font-size: 12px; background: #f1f3f5; border-radius: 999px; padding: 1px 10px; color: #3b424a; }
+.card.is-base { outline: 2px dashed #818b98; outline-offset: -2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PROJECT デザイン検討</h1>
+  <!-- 決定したら: <p class="decided">決定事項: …（案 NN を採用。サービス色は …）</p> -->
+  <p class="intro">現行デザイン（00）を基準に、方向性の異なる N 案を同じ内容・同じ画面（画面 A / 画面 B）で並べました。フィクスチャの説明（難しい場合を含むこと）。各案の上部に「トークンファイルとの差分」と「アクセシビリティ上の注意」があります。気に入った要素を案をまたいで組み合わせる前提で見てください。</p>
+  <p class="how">各ページは PC 1280px とスマホ 375px を横に並べています。あとから自分で開き直す場合: <code>python3 -m http.server -d &lt;このディレクトリ&gt; 8777</code> → http://localhost:8777/（8777 が使用中なら別の番号に）</p>
+  <ul class="grid" id="grid"></ul>
+</div>
+<script>
+/* [番号, ファイル, 名前, 1 行の説明, 軸タグ]。サムネイルは shots/<番号>-pc.jpg と shots/<番号>-sp.jpg */
+var D = [
+  ["00", "00-current.html", "現行（ベースライン）", "今のトークンの再現。比較の基準。", ["基準"]],
+  ["01", "01-example.html", "案の名前", "誰に何を感じてほしいかを 1 行で。", ["軸 1", "軸 2"]]
+];
+var grid = document.getElementById("grid");
+D.forEach(function (d) {
+  var li = document.createElement("li");
+  li.innerHTML =
+    '<article class="card' + (d[0] === "00" ? " is-base" : "") + '"><a class="cover" href="' + d[1] + '">' +
+    '<div class="shots"><img loading="lazy" alt="' + d[2] + ' の PC 表示" src="shots/' + d[0] + '-pc.jpg">' +
+    '<img loading="lazy" alt="' + d[2] + ' のスマホ表示" src="shots/' + d[0] + '-sp.jpg"></div>' +
+    '<div class="body"><span class="no">' + d[0] + '</span><h2>' + d[2] + '</h2><p>' + d[3] + '</p>' +
+    '<ul class="axes">' + d[4].map(function (a) { return "<li>" + a + "</li>"; }).join("") + '</ul></div></a></article>';
+  grid.appendChild(li);
+});
+</script>
+</body>
+</html>
